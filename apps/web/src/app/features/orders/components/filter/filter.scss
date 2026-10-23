@@ -1,0 +1,76 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+.order-filter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+    gap: 1rem;
+    align-items: end;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #e8ebf0;
+    border-radius: 12px;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+label {
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.search-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.875rem;
+    color: #6b7280;
+    font-size: 1.25rem;
+    pointer-events: none;
+}
+
+input,
+select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.625rem 0.875rem;
+    color: #1f2937;
+    font: inherit;
+    font-size: 0.875rem;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+input {
+    padding-left: 2.5rem;
+}
+
+input::placeholder {
+    color: #9ca3af;
+}
+
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #0066cc;
+    outline-offset: 2px;
+    border-color: #0066cc;
+}
+
+@media (max-width: 600px) {
+    .order-filter {
+        grid-template-columns: 1fr;
+    }
+}

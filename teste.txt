@@ -1,0 +1,392 @@
+import { DatePipe, TitleCasePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Router } from '@angular/router';
+// + vos imports existants :
+//   SuiviDemandeDto, RequestStatusEnum, PppClickTrackingDirective,
+//   FamilyActIconComponent, HistoryTitleComponent, DetailDirective (appDetail)
+
+/** Classe de modificateur CSS du badge de statut, par statut. */
+const STATUS_CLASS: Partial<Record<RequestStatusEnum, string>> = {
+  [RequestStatusEnum.DEMANDE_TRAITEE]: 'statut--is-request-processed',
+  [RequestStatusEnum.TRAITEMENT_EN_COURS]: 'statut--is-request-in-progress',
+  [RequestStatusEnum.CLOTUREE]: 'statut--is-request-closed',
+  [RequestStatusEnum.EN_ATTENTE]: 'statut--is-request-pending',
+};
+
+@Component({
+  selector: 'app-fil-conversation-row',
+  templateUrl: './fil-conversation-row.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    DatePipe,
+    TitleCasePipe,
+    PppClickTrackingDirective,
+    FamilyActIconComponent,
+    HistoryTitleComponent,
+    DetailDirective, // seulement si <ng-template appDetail> est réellement utilisé
+  ],
+})
+export class FilConversationRowComponent {
+  readonly suiviDemande = input.required<SuiviDemandeDto>();
+
+  private readonly router = inject(Router);
+
+  /** Route courante à la création du composant : conteneur du suivi de clic. */
+  protected readonly currentRoutePath = this.router.url;
+
+  protected readonly statusClass = computed(() => STATUS_CLASS[this.suiviDemande().statut]);
+
+  protected readonly isPending = computed(
+    () => this.suiviDemande().statut === RequestStatusEnum.EN_ATTENTE,
+  );
+
+  /** Réserve l'espace du chevron pour les demandes clôturées. */
+  protected readonly showChevron = computed(
+    () => this.suiviDemande().statut === RequestStatusEnum.CLOTUREE,
+  );
+
+  protected onClick(event: Event): void {
+    event.stopPropagation();
+
+    const idDemande = this.suiviDemande().idDemande;
+    if (!idDemande) {
+      return;
+    }
+    void this.router.navigate(['sante', 'historique', 'details-demande-page', 'demande', idDemande]);
+  }
+
+  /**
+   * Activation au clavier (Entrée / Espace) : on déclenche un vrai clic,
+   * ce qui conserve le suivi analytique et la navigation de `onClick`.
+   * Les touches venant d'un élément interactif enfant sont ignorées.
+   */
+  protected onKeyActivate(event: Event): void {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).click();
+  }
+}
+-------------------------------------------------------------
+@let demande = suiviDemande();
+
+<div class="p-3 mb-3 notification cursor-pointer">
+  <div
+    pppClickTracking
+    role="link"
+    tabindex="0"
+    [trackingButtonContainer]="currentRoutePath"
+    [trackingButtonType]="'clic_card'"
+    [trackingButtonName]="demande.objet"
+    (click)="onClick($event)"
+    (keydown.enter)="onKeyActivate($event)"
+    (keydown.space)="onKeyActivate($event)"
+    class="d-flex flex-wrap align-items-center flex-md-nowrap">
+    <div class="d-flex inline-flex w-100 w-md-auto">
+      <div class="d-flex me-4 order-md-1">
+        <app-family-act-icon [objet]="demande.objet"></app-family-act-icon>
+      </div>
+      <div class="title me-auto justify-content-between order-md-2 flex-md-grow-1 flex-md-shrink-0">
+        <p class="titre-12 mb-1">Demande du {{ demande.dateDemande | date: 'd LLLL' }}</p>
+        <div class="titre-sm-14 titre-md-16 mb-2 ds-bold d-flex inline-sm-flex notification-title">
+          <app-history-title [title]="demande.objet" [hasMessageIcon]="demande.contientMessage">
+          </app-history-title>
+        </div>
+        @if (demande.prenom) {
+          <sub class="mt-1">
+            {{ 'Bénéficiaire : ' + demande.prenom | titlecase }}
+          </sub>
+        }
+      </div>
+    </div>
+    <div
+      class="d-flex align-items-center w-100 mt-md-0 w-md-auto flex-sm-grow-1 order-md-3 text-md-end new-status"
+      [class.me-4]="showChevron()">
+      <div
+        class="statut ms-md-auto ms-lg-auto float-sm-start float-md-end float-lg-end float-xl-end"
+        [class]="statusClass()">
+        <div class="titre-12" [class.ps-0]="isPending()" [class.ps-lg-3]="isPending()">
+          {{ demande.etat }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="detail-fil-conversation">
+    <ng-template appDetail></ng-template>
+  </div>
+</div>
+----------------------------------------------------------------
+import { DatePipe, TitleCasePipe, registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+import { Component, Directive, LOCALE_ID, input } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import { FilConversationRowComponent } from './fil-conversation-row.component';
+// À adapter selon votre projet :
+// import { SuiviDemandeDto, RequestStatusEnum } from '...';
+
+/** Stubs : mêmes sélecteurs et inputs que les vrais composants enfants. */
+@Component({ selector: 'app-family-act-icon', template: '' })
+class FamilyActIconStub {
+  readonly objet = input<string>();
+}
+
+@Component({ selector: 'app-history-title', template: '' })
+class HistoryTitleStub {
+  readonly title = input<string>();
+  readonly hasMessageIcon = input<boolean>();
+}
+
+@Directive({ selector: '[pppClickTracking]' })
+class ClickTrackingStub {
+  readonly trackingButtonContainer = input<string>();
+  readonly trackingButtonType = input<string>();
+  readonly trackingButtonName = input<string>();
+}
+
+const STATUS_MODIFIERS = [
+  'statut--is-request-processed',
+  'statut--is-request-in-progress',
+  'statut--is-request-closed',
+  'statut--is-request-pending',
+];
+
+const DEMANDE = {
+  idDemande: 'D1',
+  objet: 'Remboursement optique',
+  dateDemande: '2026-03-05T12:00:00Z',
+  prenom: 'léa dupont',
+  etat: 'En cours de traitement',
+  statut: RequestStatusEnum.TRAITEMENT_EN_COURS,
+  contientMessage: true,
+} as unknown as SuiviDemandeDto;
+
+describe('FilConversationRowComponent', () => {
+  let fixture: ComponentFixture<FilConversationRowComponent>;
+  let element: HTMLElement;
+  const router = { url: '/sante/historique/demandes', navigate: jest.fn() };
+
+  const render = (overrides: Partial<Record<keyof SuiviDemandeDto, unknown>> = {}): void => {
+    fixture.componentRef.setInput('suiviDemande', { ...DEMANDE, ...overrides });
+    fixture.detectChanges();
+  };
+
+  const card = (): HTMLElement => element.querySelector('[role="link"]') as HTMLElement;
+  const statusBadge = (): HTMLElement => element.querySelector('.statut') as HTMLElement;
+  const text = (el: Element | null): string => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+  const keydown = (target: Element, key: string): KeyboardEvent => {
+    const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+    target.dispatchEvent(event);
+    return event;
+  };
+
+  beforeAll(() => registerLocaleData(localeFr));
+
+  beforeEach(() => {
+    router.navigate.mockReset();
+    router.navigate.mockResolvedValue(true);
+
+    TestBed.configureTestingModule({
+      imports: [FilConversationRowComponent],
+      providers: [
+        { provide: Router, useValue: router },
+        { provide: LOCALE_ID, useValue: 'fr-FR' },
+      ],
+    }).overrideComponent(FilConversationRowComponent, {
+      set: {
+        imports: [DatePipe, TitleCasePipe, ClickTrackingStub, FamilyActIconStub, HistoryTitleStub],
+      },
+    });
+
+    fixture = TestBed.createComponent(FilConversationRowComponent);
+    element = fixture.nativeElement;
+  });
+
+  describe('affichage', () => {
+    it('affiche la date de la demande en français', () => {
+      render();
+      expect(text(element.querySelector('p.titre-12'))).toBe('Demande du 5 mars');
+    });
+
+    it('affiche le bénéficiaire avec une majuscule à chaque mot', () => {
+      render();
+      expect(text(element.querySelector('sub'))).toBe('Bénéficiaire : Léa Dupont');
+    });
+
+    it('n’affiche pas de bénéficiaire sans prénom', () => {
+      render({ prenom: undefined });
+      expect(element.querySelector('sub')).toBeNull();
+    });
+
+    it('affiche l’état de la demande', () => {
+      render();
+      expect(text(element.querySelector('.statut .titre-12'))).toBe('En cours de traitement');
+    });
+
+    it('transmet l’objet à l’icône', () => {
+      render();
+      const icon = fixture.debugElement.query(By.directive(FamilyActIconStub)).componentInstance;
+      expect(icon.objet()).toBe('Remboursement optique');
+    });
+
+    it('transmet l’objet et l’indicateur de message au titre', () => {
+      render();
+      const title = fixture.debugElement.query(By.directive(HistoryTitleStub)).componentInstance;
+      expect(title.title()).toBe('Remboursement optique');
+      expect(title.hasMessageIcon()).toBe(true);
+    });
+
+    it('se met à jour quand la demande change', () => {
+      render();
+      render({ etat: 'Clôturée', objet: 'Devis dentaire' });
+      expect(text(element.querySelector('.statut .titre-12'))).toBe('Clôturée');
+    });
+
+    it('rend la carte cliquable et focalisable', () => {
+      render();
+      expect(card().getAttribute('tabindex')).toBe('0');
+      expect(element.querySelector('.notification')?.classList).toContain('cursor-pointer');
+    });
+  });
+
+  describe('suivi de clic', () => {
+    it('transmet conteneur, type et nom au suivi', () => {
+      render();
+      const tracking = fixture.debugElement.query(By.directive(ClickTrackingStub)).injector.get(ClickTrackingStub);
+
+      expect(tracking.trackingButtonContainer()).toBe('/sante/historique/demandes');
+      expect(tracking.trackingButtonType()).toBe('clic_card');
+      expect(tracking.trackingButtonName()).toBe('Remboursement optique');
+    });
+  });
+
+  describe('statut', () => {
+    const expectOnlyModifier = (expected: string | undefined): void => {
+      STATUS_MODIFIERS.forEach((modifier) => {
+        expect(statusBadge().classList.contains(modifier)).toBe(modifier === expected);
+      });
+    };
+
+    it.each([
+      [RequestStatusEnum.DEMANDE_TRAITEE, 'statut--is-request-processed'],
+      [RequestStatusEnum.TRAITEMENT_EN_COURS, 'statut--is-request-in-progress'],
+      [RequestStatusEnum.CLOTUREE, 'statut--is-request-closed'],
+      [RequestStatusEnum.EN_ATTENTE, 'statut--is-request-pending'],
+    ])('applique la classe du statut %s', (statut, modifier) => {
+      render({ statut });
+      expectOnlyModifier(modifier);
+    });
+
+    it('conserve les classes statiques du badge', () => {
+      render({ statut: RequestStatusEnum.CLOTUREE });
+      expect(statusBadge().classList).toContain('statut');
+      expect(statusBadge().classList).toContain('ms-md-auto');
+    });
+
+    it('n’applique aucun modificateur pour un statut inconnu', () => {
+      render({ statut: 'INCONNU' });
+      expectOnlyModifier(undefined);
+    });
+
+    it('met à jour la classe quand le statut change', () => {
+      render({ statut: RequestStatusEnum.EN_ATTENTE });
+      render({ statut: RequestStatusEnum.CLOTUREE });
+      expectOnlyModifier('statut--is-request-closed');
+    });
+
+    it('décale l’état uniquement pour une demande en attente', () => {
+      render({ statut: RequestStatusEnum.EN_ATTENTE });
+      const label = element.querySelector('.statut .titre-12') as HTMLElement;
+      expect(label.classList).toContain('ps-0');
+      expect(label.classList).toContain('ps-lg-3');
+
+      render({ statut: RequestStatusEnum.CLOTUREE });
+      expect(label.classList).not.toContain('ps-0');
+      expect(label.classList).not.toContain('ps-lg-3');
+    });
+
+    it('réserve l’espace du chevron uniquement pour une demande clôturée', () => {
+      render({ statut: RequestStatusEnum.CLOTUREE });
+      expect(element.querySelector('.new-status')?.classList).toContain('me-4');
+
+      render({ statut: RequestStatusEnum.TRAITEMENT_EN_COURS });
+      expect(element.querySelector('.new-status')?.classList).not.toContain('me-4');
+    });
+  });
+
+  describe('navigation', () => {
+    const expectedRoute = ['sante', 'historique', 'details-demande-page', 'demande', 'D1'];
+
+    it('navigue vers le détail de la demande au clic', () => {
+      render();
+      card().click();
+
+      expect(router.navigate).toHaveBeenCalledTimes(1);
+      expect(router.navigate).toHaveBeenCalledWith(expectedRoute);
+    });
+
+    it('arrête la propagation du clic', () => {
+      render();
+      const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+      const stop = jest.spyOn(event, 'stopPropagation');
+
+      card().dispatchEvent(event);
+
+      expect(stop).toHaveBeenCalled();
+    });
+
+    it('ne navigue pas sans identifiant de demande, mais arrête la propagation', () => {
+      render({ idDemande: undefined });
+      const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+      const stop = jest.spyOn(event, 'stopPropagation');
+
+      card().dispatchEvent(event);
+
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(stop).toHaveBeenCalled();
+    });
+  });
+
+  describe('clavier', () => {
+    it('Entrée navigue vers le détail', () => {
+      render();
+      keydown(card(), 'Enter');
+      expect(router.navigate).toHaveBeenCalledWith(['sante', 'historique', 'details-demande-page', 'demande', 'D1']);
+    });
+
+    it('Espace navigue sans faire défiler la page', () => {
+      render();
+      const event = keydown(card(), ' ');
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(router.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('déclenche un vrai clic (pour conserver le suivi analytique)', () => {
+      render();
+      const onClick = jest.fn();
+      card().addEventListener('click', onClick);
+
+      keydown(card(), 'Enter');
+
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignore les autres touches', () => {
+      render();
+      const event = keydown(card(), 'a');
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('ignore Entrée venant d’un élément enfant', () => {
+      render();
+      keydown(statusBadge(), 'Enter');
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+  });
+});
