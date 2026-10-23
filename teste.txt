@@ -1,0 +1,71 @@
+@if (devisListItemData(); as devis) {
+  <div
+    class="py-4 cursor-pointer mb-3 notification"
+    role="link"
+    tabindex="0"
+    (click)="onClickCard()"
+    (keydown.enter)="onClickCard()"
+    (keydown.space)="$event.preventDefault(); onClickCard()">
+    <div class="d-md-flex d-sm-column">
+      <div class="d-flex align-items-center flex-md-grow-1 flex-md-shrink-0">
+        <div class="d-flex me-4 mt-sm-5 mt-md-0">
+          <family-act-icon [code]="devis.familleSoin?.code"></family-act-icon>
+        </div>
+
+        <!-- Détails -->
+        <div class="title">
+          <label class="titre-12">{{ devis.sousTitre }}</label> <br />
+          <div class="titre-sm-14 titre-md-16 mb-2 ds-bold">
+            <history-title
+              [nouveau]="devis.nouveau"
+              [title]="'Résultat de devis'"
+              [referenceNumber]="devis.noDossier"
+              [label]="devis.familleSoin?.libelle">
+            </history-title>
+          </div>
+          <sub class="mt-1">
+            <beneficiary [prenomBeneficiaire]="devis.beneficiaires?.[0]?.prenom"></beneficiary>
+          </sub>
+        </div>
+      </div>
+
+      <!-- Reste à charge -->
+      <div class="reste-a-charge mt-md-2 mt-1 mt-sm-1">
+        <p class="titre-18 titre-md-22" [attr.aria-label]="montantAriaLabel()">
+          <span class="ds-bold titre-18 titre-md-22">{{ montantRAC() }}€</span> /
+          {{ montantTotal() }}€
+        </p>
+        <span class="titre-12"> de reste à charge </span>
+      </div>
+    </div>
+  </div>
+}
+-----------------------
+
+export class DevisListRowComponent {
+  readonly devisListItemData = input<DevisListItemModel | null>(null);
+
+  private readonly router = inject(Router);
+
+  protected readonly montantRAC = computed(() =>
+    MathUtils.convertDecimal(this.devisListItemData()?.montantRAC ?? 0),
+  );
+
+  protected readonly montantTotal = computed(() =>
+    MathUtils.convertDecimal(this.devisListItemData()?.montantTotal ?? 0),
+  );
+
+  protected readonly montantAriaLabel = computed(
+    () => `${this.montantRAC()} € sur ${this.montantTotal()} €`,
+  );
+
+  protected onClickCard(): void {
+    const noDossier = this.devisListItemData()?.noDossier;
+
+    if (!noDossier) {
+      return;
+    }
+
+    void this.router.navigate(['sante', 'historique', 'details-demande-page', 'devis', noDossier]);
+  }
+}

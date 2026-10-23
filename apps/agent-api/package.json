@@ -1,0 +1,32 @@
+{
+  "name": "agent-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "node --env-file=.env --import tsx --watch src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "start": "node --env-file=.env dist/main.js",
+    "test:ag-ui": "node --env-file=.env --import tsx src/agent/test-order-agent.ts"
+  },
+  "keywords": [],
+  "type": "module",
+  "dependencies": {
+    "@ag-ui/core": "^1.0.3",
+    "@ag-ui/mastra": "^2.0.1",
+    "@hono/node-server": "^2.1.5",
+    "@hono/zod-validator": "^0.9.1",
+    "@mastra/core": "^1.79.0",
+    "@mastra/hono": "^1.7.21",
+    "@mastra/memory": "^1.39.0",
+    "hono": "^4.13.13",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

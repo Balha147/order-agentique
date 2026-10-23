@@ -1,0 +1,33 @@
+<section class="order-stats" aria-label="Statistiques des commandes">
+    <button type="button" class="stat-card" [class.stat-card--selected]="orderUiService.selectedStatus() === 'all'"
+        [attr.aria-pressed]="orderUiService.selectedStatus() === 'all'" (click)="filterByStatus('all')">
+        <span class="stat-label">Total des commandes</span>
+        <strong class="stat-value">{{ stats().total }}</strong>
+    </button>
+
+    <button type="button" class="stat-card" [class.stat-card--selected]="orderUiService.selectedStatus() === 'pending'"
+        [attr.aria-pressed]="orderUiService.selectedStatus() === 'pending'" (click)="filterByStatus('pending')">
+        <span class="stat-label">En attente</span>
+        <strong class="stat-value">{{ stats().pending }}</strong>
+    </button>
+
+    <button type="button" class="stat-card" [class.stat-card--selected]="orderUiService.selectedStatus() === 'shipped'"
+        [attr.aria-pressed]="orderUiService.selectedStatus() === 'shipped'" (click)="filterByStatus('shipped')">
+        <span class="stat-label">Expédiées</span>
+        <strong class="stat-value">{{ stats().shipped }}</strong>
+    </button>
+
+    <button type="button" class="stat-card"
+        [class.stat-card--selected]="orderUiService.selectedStatus() === 'delivered'"
+        [attr.aria-pressed]="orderUiService.selectedStatus() === 'delivered'" (click)="filterByStatus('delivered')">
+        <span class="stat-label">Livrées</span>
+        <strong class="stat-value">{{ stats().delivered }}</strong>
+    </button>
+
+    <article class="stat-card stat-card--total-value">
+        <span class="stat-label">Valeur totale des commandes</span>
+        <strong class="stat-value">
+            {{ stats().totalValue | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
+        </strong>
+    </article>
+</section>
