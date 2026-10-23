@@ -1,0 +1,141 @@
+.agent-timeline {
+    margin: 20px 22px;
+    padding: 18px 20px;
+    border: 1px solid #e2eaff;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f8faff 0%, #fff 100%);
+}
+
+.timeline-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e9eef9;
+}
+
+.timeline-heading-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    place-items: center;
+    border-radius: 12px;
+    background: #e9efff;
+    color: #315ee8;
+    font-size: 21px;
+}
+
+.timeline-heading h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.timeline-heading p {
+    margin: 4px 0 0;
+    color: #7b8497;
+    font-size: 12px;
+}
+
+.timeline-status {
+    margin-left: auto;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #eaf8ef;
+    color: #18794e;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.timeline-status--running {
+    background: #eaf1ff;
+    color: #2456d9;
+}
+
+.timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 17px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.timeline-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 38px;
+    color: #68748a;
+    font-size: 12px;
+}
+
+.timeline-step:not(:last-child)::after {
+    position: absolute;
+    top: 28px;
+    left: 11px;
+    width: 1px;
+    height: 20px;
+    background: #dce3ef;
+    content: "";
+}
+
+.timeline-marker {
+    z-index: 1;
+    display: grid;
+    width: 23px;
+    height: 23px;
+    flex: 0 0 23px;
+    place-items: center;
+    border: 1px solid #d9e1ed;
+    border-radius: 50%;
+    background: #fff;
+    color: #7b8497;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.timeline-step--active {
+    color: #2456d9;
+    font-weight: 700;
+}
+
+.timeline-step--active .timeline-marker {
+    border-color: #7da2ff;
+    background: #edf3ff;
+    color: #2456d9;
+}
+
+.timeline-step--error {
+    color: #b42318;
+}
+
+.timeline-step--error .timeline-marker {
+    border-color: #f3b7b2;
+    background: #fff1f0;
+    color: #b42318;
+}
+
+.timeline-spinner {
+    width: 11px;
+    height: 11px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: timeline-spin 0.8s linear infinite;
+}
+
+@keyframes timeline-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.timeline-empty {
+    margin: 16px 0 0;
+    color: #7b8497;
+    font-size: 12px;
+}
