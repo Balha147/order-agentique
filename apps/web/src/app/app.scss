@@ -1,0 +1,286 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    color: #172033;
+    background: #f5f7fb;
+    font-family: Inter, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.app-shell {
+    width: 100%;
+    min-height: 100vh;
+    padding: 0 32px;
+}
+
+/* Header */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 88px;
+    border-bottom: 1px solid #e6eaf1;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 13px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 800;
+    box-shadow: 0 5px 14px rgb(37 99 235 / 18%);
+}
+
+.header-copy h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -0.5px;
+}
+
+.header-copy p {
+    margin: 5px 0 0;
+    color: #7b8497;
+    font-size: 13px;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 13px;
+    border: 1px solid #d9f1e4;
+    border-radius: 999px;
+    background: #f0fbf5;
+    color: #18794e;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+}
+
+/* Main layout */
+
+.app-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.85fr);
+    align-items: start;
+    gap: 24px;
+    max-width: 1600px;
+    margin: 28px auto;
+}
+
+.orders-panel,
+.chat-panel {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #e8ecf3;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 5px 22px rgb(30 41 59 / 4%);
+}
+
+/* Orders heading */
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 25px 26px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.eyebrow {
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.panel-heading h2 {
+    margin: 8px 0 0;
+    font-size: 23px;
+    font-weight: 750;
+    letter-spacing: -0.7px;
+}
+
+.panel-heading p {
+    margin: 7px 0 0;
+    color: #7b8497;
+    font-size: 13px;
+}
+
+.orders-icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    place-items: center;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 24px;
+}
+
+.chat-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
+    max-height: calc(100vh - 145px);
+}
+
+.chat-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 21px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.chat-avatar {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    border-radius: 13px;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: 22px;
+}
+
+.chat-heading h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.chat-heading p {
+    margin: 5px 0 0;
+    color: #7b8497;
+    font-size: 11px;
+}
+
+.chat-content {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+}
+
+.app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 0 22px;
+    color: #929bad;
+    font-size: 11px;
+}
+
+/* Responsive */
+
+@media (max-width: 1050px) {
+    .app-shell {
+        padding: 0 20px;
+    }
+
+    .app-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .chat-panel {
+        min-height: 520px;
+        max-height: 700px;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-shell {
+        padding: 0 12px;
+    }
+
+    .app-header {
+        min-height: 76px;
+    }
+
+    .brand-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .header-copy h1 {
+        font-size: 16px;
+    }
+
+    .header-copy p {
+        font-size: 11px;
+    }
+
+    .header-status {
+        gap: 6px;
+        padding: 7px 9px;
+        font-size: 10px;
+    }
+
+    .app-layout {
+        gap: 16px;
+        margin: 16px auto;
+    }
+
+    .panel-heading {
+        padding: 19px 16px;
+    }
+
+    .panel-heading h2 {
+        font-size: 19px;
+    }
+
+    .agent-timeline {
+        margin: 14px 12px;
+        padding: 15px 13px;
+    }
+
+    .chat-heading {
+        padding: 16px;
+    }
+
+    .app-footer {
+        padding-bottom: 16px;
+        font-size: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

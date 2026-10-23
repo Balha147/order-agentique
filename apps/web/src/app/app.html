@@ -1,0 +1,54 @@
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-icon" aria-hidden="true">O</div>
+
+      <div class="header-copy">
+        <h1>Order Management</h1>
+        <p>Gestion des commandes assistée par IA</p>
+      </div>
+    </div>
+
+    <div class="header-status">
+      <span class="status-dot" aria-hidden="true"></span>
+      Agent connecté
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <section class="orders-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="eyebrow">TABLEAU DE BORD</span>
+          <h2>Suivi des commandes</h2>
+          <p>Consultez et gérez vos commandes.</p>
+        </div>
+
+        <div class="orders-icon" aria-hidden="true">▤</div>
+      </div>
+
+      <app-timeline />
+      <app-orders />
+    </section>
+
+    <aside class="chat-panel">
+      <div class="chat-heading">
+        <div class="chat-avatar" aria-hidden="true">✦</div>
+
+        <div>
+          <h2>Assistant commandes</h2>
+          <p>Posez vos questions en langage naturel</p>
+        </div>
+      </div>
+
+      <div class="chat-content">
+        <copilot-chat agentId="orderManagementAgent" />
+      </div>
+    </aside>
+  </main>
+
+  <footer class="app-footer">
+    <span>Order Management</span>
+    <span>Propulsé par un agent IA</span>
+  </footer>
+</div>

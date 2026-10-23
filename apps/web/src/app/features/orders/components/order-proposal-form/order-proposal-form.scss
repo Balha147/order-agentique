@@ -1,0 +1,82 @@
+:host {
+    display: block;
+}
+
+.order-proposal {
+    padding: 1.25rem;
+    border: 1px solid #dcdfe4;
+    border-radius: 12px;
+    background: #fff;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+label {
+    font-weight: 600;
+}
+
+input,
+textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid #aeb5bf;
+    border-radius: 6px;
+    font: inherit;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+    outline: 2px solid #0066cc;
+    outline-offset: 2px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.field-error {
+    margin: 0;
+    color: #b42318;
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+button {
+    padding: 0.7rem 1rem;
+    border: 1px solid #db3924;
+    border-radius: 6px;
+    background: #db3924;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button.secondary {
+    border-color: #aeb5bf;
+    background: #fff;
+    color: #252a32;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

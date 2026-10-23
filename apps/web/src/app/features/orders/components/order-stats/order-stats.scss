@@ -1,0 +1,56 @@
+.order-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background: var(--surface, #fff);
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.stat-card--total-value {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .order-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.stat-card {
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.stat-card:hover,
+.stat-card--selected {
+    border-color: #64748b;
+}
+
+.stat-card:focus-visible {
+    outline: 3px solid #0066cc;
+    outline-offset: 3px;
+}
