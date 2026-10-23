@@ -1,0 +1,323 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    color: #0f172a;
+    background: #f8fafc;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.app-shell {
+    width: 100%;
+    min-height: 100vh;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 5rem;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.brand-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 700;
+    box-shadow: 0 4px 6px -1px rgb(37 99 235 / 0.2), 0 2px 4px -2px rgb(37 99 235 / 0.2);
+}
+
+.header-copy h1 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+}
+
+.header-copy p {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.8125rem;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 9999px;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+/* Main layout */
+
+.app-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.85fr);
+    align-items: start;
+    gap: 1.5rem;
+    max-width: 1600px;
+    width: 100%;
+    margin: 1.75rem auto;
+    flex: 1;
+}
+
+.orders-panel,
+.chat-panel {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+.orders-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+    overflow: hidden;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: -1.5rem -1.5rem 0 -1.5rem;
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Orders heading */
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.eyebrow {
+    color: #2563eb;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.panel-heading h2 {
+    margin: 0.35rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+}
+
+.panel-heading p {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.8125rem;
+}
+
+.orders-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    place-items: center;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 1.25rem;
+}
+
+.chat-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
+    max-height: calc(100vh - 140px);
+    position: sticky;
+    top: 1.75rem;
+}
+
+.chat-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1.35rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.chat-avatar {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    border-radius: 12px;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: 1.125rem;
+}
+
+.chat-heading h2 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.chat-heading p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.chat-content {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+}
+
+.app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1.5rem 0;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Responsive */
+
+@media (max-width: 1050px) {
+    .app-shell {
+        padding: 0 1.25rem;
+    }
+
+    .app-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .chat-panel {
+        position: static;
+        min-height: 520px;
+        max-height: 700px;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-shell {
+        padding: 0 0.75rem;
+    }
+
+    .app-header {
+        min-height: 4.5rem;
+    }
+
+    .brand-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.125rem;
+    }
+
+    .header-copy h1 {
+        font-size: 1rem;
+    }
+
+    .header-copy p {
+        font-size: 0.75rem;
+    }
+
+    .header-status {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.6875rem;
+    }
+
+    .app-layout {
+        gap: 1rem;
+        margin: 1rem auto;
+    }
+
+    .panel-heading {
+        padding: 1.25rem 1rem;
+    }
+
+    .panel-heading h2 {
+        font-size: 1.125rem;
+    }
+
+    .chat-heading {
+        padding: 1rem;
+    }
+
+    .app-footer {
+        padding: 1rem 0;
+        font-size: 0.6875rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
