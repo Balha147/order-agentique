@@ -1,0 +1,24 @@
+<div class="order-filter">
+    <div class="filter-field">
+        <label for="order-search">Rechercher une commande</label>
+
+        <div class="search-input">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+
+            <input id="order-search" type="search" placeholder="ID ou nom du client..." autocomplete="off"
+                [value]="orderUiService.searchTerm()" (input)="onSearchInput($event)" />
+        </div>
+    </div>
+
+    <div class="filter-field">
+        <label for="order-status">Statut</label>
+
+        <select id="order-status" [value]="orderUiService.selectedStatus()" (change)="onStatusSelect($event)">
+            @for (option of statusOptions; track option.value) {
+            <option [value]="option.value">
+                {{ option.label }}
+            </option>
+            }
+        </select>
+    </div>
+</div>

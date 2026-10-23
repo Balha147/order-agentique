@@ -1,0 +1,139 @@
+<section class="orders">
+    <app-order-stats />
+    <app-filter />
+
+    @if (orderService.error(); as errorMessage) {
+    <div class="error-message" role="alert">
+        {{ errorMessage }}
+    </div>
+    }
+
+    @if (orderService.isLoading()) {
+    <p class="loading-message" role="status">
+        Chargement des commandes…
+    </p>
+    } @else {
+    <div class="orders-content">
+        <section class="orders-list" aria-label="Liste des commandes">
+            <div class="list-heading">
+                <h3>Commandes</h3>
+                <span class="order-count">
+                    {{ filteredOrders().length }}
+                </span>
+            </div>
+
+            @if (filteredOrders().length === 0) {
+            <div class="empty-state">
+                <p>Aucune commande trouvée.</p>
+                <span>Modifiez vos critères de recherche.</span>
+            </div>
+            } @else {
+            <div class="order-items">
+                @for (order of filteredOrders(); track order.id) {
+                <article class="order-card" [class.order-card--selected]="
+                  orderUiService.selectedOrderId() === order.id
+                ">
+                    <button class="order-card__select" type="button" [attr.aria-pressed]="
+                    orderUiService.selectedOrderId() === order.id
+                  " (click)="selectOrder(order.id)">
+                        <div class="order-card__top">
+                            <strong>{{ order.id }}</strong>
+
+                            <span class="status" [class.status--pending]="order.status === 'pending'"
+                                [class.status--shipped]="order.status === 'shipped'"
+                                [class.status--delivered]="order.status === 'delivered'">
+                                {{ statusLabels[order.status] }}
+                            </span>
+                        </div>
+
+                        <div class="order-card__customer">
+                            {{ order.customer }}
+                        </div>
+
+                        <div class="order-card__bottom">
+                            <span>
+                                {{ order.items.length }}
+                                article(s)
+                            </span>
+
+                            <strong>
+                                {{ order.total | currency:'EUR':'symbol':'1.2-2' }}
+                            </strong>
+                        </div>
+
+                        <div class="order-card__date">
+                            Créée le {{ order.createdAt | date:'dd/MM/yyyy' }}
+                        </div>
+                    </button>
+                </article>
+                }
+            </div>
+            }
+        </section>
+
+        <aside class="order-details" aria-label="Détails de la commande">
+            @if (selectedOrder(); as order) {
+            <div class="details-heading">
+                <div>
+                    <span class="eyebrow">DÉTAILS</span>
+                    <h3>{{ order.id }}</h3>
+                </div>
+
+                <button class="close-button" type="button" aria-label="Fermer les détails" (click)="clearSelection()">
+                    ×
+                </button>
+            </div>
+
+            <div class="details-field">
+                <span>Client</span>
+                <strong>{{ order.customer }}</strong>
+            </div>
+
+            <div class="details-field">
+                <span>Statut</span>
+                <strong>{{ statusLabels[order.status] }}</strong>
+            </div>
+
+            <div class="details-field">
+                <span>Date de création</span>
+                <strong>{{ order.createdAt | date:'dd/MM/yyyy' }}</strong>
+            </div>
+
+            <div class="details-section">
+                <h4>Articles</h4>
+
+                <ul>
+                    @for (item of order.items; track $index) {
+                    <li>{{ item }}</li>
+                    }
+                </ul>
+            </div>
+
+            <div class="details-total">
+                <span>Total</span>
+                <strong>
+                    {{ order.total | currency:'EUR':'symbol':'1.2-2' }}
+                </strong>
+            </div>
+
+
+            } @else {
+            <div class="details-empty">
+                <div class="details-empty__icon" aria-hidden="true">▤</div>
+                <h3>Aucune commande sélectionnée</h3>
+                <p>
+                    Sélectionnez une commande pour consulter ses détails.
+                </p>
+            </div>
+            }
+        </aside>
+    </div>
+    }
+</section>
+
+
+
+@if (orderService.pendingOrderProposal(); as proposal) {
+<app-order-proposal-form [proposal]="proposal" [submitting]="orderService.proposalSubmitting()"
+    (confirmProposal)="onConfirmProposal($event)" (cancelProposal)="onCancelProposal($event)" />
+}

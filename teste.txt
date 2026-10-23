@@ -1,0 +1,522 @@
+const TABLET_QUERY = '(660px < width < 1280px)';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+type MediaListener = (event: MediaQueryListEvent) => void;
+
+interface MatchMediaController {
+  set(query: string, value: boolean): void;
+  listenerCount(query: string): number;
+}
+
+function mockMatchMedia(initial: Record<string, boolean> = {}): MatchMediaController {
+  const state: Record<string, boolean> = { ...initial };
+  const listeners = new Map<string, Set<MediaListener>>();
+
+  const implementation = jest.fn((query: string) => ({
+    get matches() {
+      return state[query] ?? false;
+    },
+    media: query,
+    addEventListener: (_: string, cb: MediaListener) => {
+      let set = listeners.get(query);
+      if (!set) {
+        set = new Set();
+        listeners.set(query, set);
+      }
+      set.add(cb);
+    },
+    removeEventListener: (_: string, cb: MediaListener) => listeners.get(query)?.delete(cb),
+  }));
+
+  const descriptor = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+  if (!descriptor || descriptor.configurable) {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: implementation,
+    });
+  } else if (descriptor.writable) {
+    (window as unknown as { matchMedia: unknown }).matchMedia = implementation;
+  } else {
+    throw new Error(
+      'window.matchMedia est non configurable et non modifiable : retire sa définition de setup-jest.ts.',
+    );
+  }
+
+  return {
+    set(query: string, value: boolean): void {
+      state[query] = value;
+      listeners.get(query)?.forEach((cb) => cb({ matches: value, media: query } as MediaQueryListEvent));
+    },
+    listenerCount: (query: string): number => listeners.get(query)?.size ?? 0,
+  };
+}
+
+@Directive({ selector: '[pppClickTracking]' })
+class PppClickTrackingStub {
+  readonly trackingButtonType = input<string>();
+  readonly trackingButtonName = input<string>();
+  readonly trackingButtonContainer = input<string>();
+}
+
+@Component({
+  imports: [DsCarrouselComponent, DsCarrouselItemDirective],
+  template: `
+    <app-ds-carrousel
+      [isSmallContainerDesktop]="small()"
+      [defaultNavigationPoint]="defaultPoint()"
+      [slideByPage]="slideByPage()"
+      [trackingCarrouselContainer]="container()"
+      [trackingCarrouselNavigationName]="navName()"
+    >
+      @for (slide of slides(); track slide) {
+        <ng-template dsCarrouselItem>
+          <span class="slide-content">{{ slide }}</span>
+        </ng-template>
+      }
+    </app-ds-carrousel>
+  `,
+})
+class HostComponent {
+  readonly slides = signal<number[]>([1, 2, 3, 4, 5, 6, 7]);
+  readonly small = signal(true);
+  readonly defaultPoint = signal(true);
+  readonly slideByPage = signal(3);
+  readonly container = signal('test_container');
+  readonly navName = signal('test nav');
+}
+
+describe('DsCarrouselComponent', () => {
+  let fixture: ComponentFixture<HostComponent>;
+  let host: HostComponent;
+  let media: MatchMediaController;
+
+  async function render(): Promise<void> {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function setup(
+    options: { slides?: number; tablet?: boolean; reducedMotion?: boolean } = {},
+  ): Promise<void> {
+    media = mockMatchMedia({
+      [TABLET_QUERY]: options.tablet ?? false,
+      [REDUCED_MOTION_QUERY]: options.reducedMotion ?? false,
+    });
+
+    TestBed.configureTestingModule({ imports: [HostComponent] });
+    TestBed.overrideComponent(DsCarrouselComponent, {
+      set: { imports: [NgTemplateOutlet, PppClickTrackingStub] },
+    });
+    await TestBed.compileComponents();
+
+    fixture = TestBed.createComponent(HostComponent);
+    host = fixture.componentInstance;
+    if (options.slides !== undefined) {
+      host.slides.set(Array.from({ length: options.slides }, (_, i) => i + 1));
+    }
+    await render();
+  }
+
+  const el = (selector: string): HTMLElement | null =>
+    fixture.nativeElement.querySelector(selector);
+  const elAll = (selector: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(selector));
+
+  const main = (): HTMLElement => {
+    const node = el('.carousel-main');
+    if (!node) throw new Error('.carousel-main introuvable');
+    return node;
+  };
+  const slideEls = (): HTMLElement[] => elAll('.carousel-slide');
+  const puces = (): HTMLElement[] => elAll('.puce');
+  const previousBtn = (): HTMLButtonElement => elAll('.carousel-button')[0] as HTMLButtonElement;
+  const nextBtn = (): HTMLButtonElement => elAll('.carousel-button')[1] as HTMLButtonElement;
+  const activePuceIndex = (): number =>
+    puces().findIndex((p) => p.classList.contains('active'));
+
+  async function click(target: HTMLElement): Promise<void> {
+    target.click();
+    await render();
+  }
+
+  async function endTransition(propertyName = 'transform', target: HTMLElement = main()): Promise<void> {
+    const event = new Event('transitionend');
+    Object.defineProperty(event, 'propertyName', { value: propertyName });
+    target.dispatchEvent(event);
+    await render();
+  }
+
+  async function goNext(): Promise<void> {
+    await click(nextBtn());
+    await endTransition();
+  }
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    jest.restoreAllMocks();
+  });
+
+  describe('rendu initial', () => {
+    beforeEach(() => setup());
+
+    it('crée le composant', () => {
+      expect(fixture.debugElement.query(By.directive(DsCarrouselComponent))).toBeTruthy();
+    });
+
+    it('affiche une slide par élément projeté avec son contenu', () => {
+      expect(slideEls()).toHaveLength(7);
+      expect(elAll('.slide-content').map((s) => s.textContent?.trim())).toEqual(
+        ['1', '2', '3', '4', '5', '6', '7'],
+      );
+    });
+
+    it('démarre à la position 0', () => {
+      expect(main().style.transform).toBe('translateX(0%)');
+      expect(activePuceIndex()).toBe(0);
+    });
+
+    it('désactive "précédent" et active "suivant"', () => {
+      expect(previousBtn().disabled).toBe(true);
+      expect(previousBtn().classList).toContain('inactive');
+      expect(nextBtn().disabled).toBe(false);
+      expect(nextBtn().classList).not.toContain('inactive');
+    });
+
+    it('affiche une puce par slide hors tablette', () => {
+      expect(puces()).toHaveLength(7);
+    });
+
+    it('expose les labels d\'accessibilité des chevrons', () => {
+      expect(previousBtn().getAttribute('aria-label')).toBe('carrousel gauche');
+      expect(nextBtn().getAttribute('aria-label')).toBe('carrousel droit');
+    });
+  });
+
+  describe('classes CSS des slides', () => {
+    it('applique carousel-slide--small et justify-content-center quand isSmallContainerDesktop = true', async () => {
+      await setup();
+      const slide = slideEls()[0];
+      expect(slide.classList).toContain('carousel-slide--small');
+      expect(slide.classList).toContain('justify-content-center');
+      expect(slide.classList).not.toContain('carousel-slide--large');
+      expect(slide.classList).not.toContain('justify-content-start');
+    });
+
+    it('applique carousel-slide--large et justify-content-start quand isSmallContainerDesktop = false', async () => {
+      await setup();
+      host.small.set(false);
+      await render();
+      const slide = slideEls()[0];
+      expect(slide.classList).toContain('carousel-slide--large');
+      expect(slide.classList).toContain('justify-content-start');
+      expect(slide.classList).not.toContain('carousel-slide--small');
+    });
+
+    it('applique "single" quand il n\'y a qu\'une seule slide', async () => {
+      await setup({ slides: 1 });
+      expect(slideEls()[0].classList).toContain('single');
+      expect(slideEls()[0].classList).not.toContain('double');
+    });
+
+    it('applique "double" quand il y a deux slides', async () => {
+      await setup({ slides: 2 });
+      slideEls().forEach((s) => {
+        expect(s.classList).toContain('double');
+        expect(s.classList).not.toContain('single');
+      });
+    });
+
+    it('n\'applique ni "single" ni "double" si le conteneur n\'est pas petit', async () => {
+      await setup({ slides: 1 });
+      host.small.set(false);
+      await render();
+      expect(slideEls()[0].classList).not.toContain('single');
+    });
+
+    it('bascule les classes des indicateurs selon defaultNavigationPoint', async () => {
+      await setup();
+      const list = el('.carousel-indicators') as HTMLElement;
+      expect(list.classList).toContain('carousel-indicators--default');
+
+      host.defaultPoint.set(false);
+      await render();
+      expect(list.classList).toContain('carousel-indicators--large');
+      expect(list.classList).not.toContain('carousel-indicators--default');
+    });
+  });
+
+  describe('zone de contrôles', () => {
+    it('est masquée avec une seule slide', async () => {
+      await setup({ slides: 1 });
+      expect(el('.carousel-buttons-area')).toBeNull();
+    });
+
+    it('est masquée sans aucune slide', async () => {
+      await setup({ slides: 0 });
+      expect(slideEls()).toHaveLength(0);
+      expect(el('.carousel-buttons-area')).toBeNull();
+    });
+
+    it('est affichée avec au moins deux slides', async () => {
+      await setup({ slides: 2 });
+      expect(el('.carousel-buttons-area')).not.toBeNull();
+    });
+
+    it('apparaît quand des slides sont ajoutées dynamiquement', async () => {
+      await setup({ slides: 1 });
+      host.slides.set([1, 2, 3]);
+      await render();
+      expect(el('.carousel-buttons-area')).not.toBeNull();
+      expect(puces()).toHaveLength(3);
+    });
+  });
+
+  describe('navigation avec les chevrons', () => {
+    beforeEach(() => setup());
+
+    it('"suivant" avance d\'une slide (translateX -100%) et met à jour la puce active', async () => {
+      await click(nextBtn());
+      expect(main().style.transform).toBe('translateX(-100%)');
+      expect(activePuceIndex()).toBe(1);
+    });
+
+    it('désactive les deux chevrons pendant l\'animation', async () => {
+      await click(nextBtn());
+      expect(previousBtn().disabled).toBe(true);
+      expect(nextBtn().disabled).toBe(true);
+    });
+
+    it('réactive les chevrons à la fin de la transition', async () => {
+      await click(nextBtn());
+      await endTransition();
+      expect(previousBtn().disabled).toBe(false);
+      expect(nextBtn().disabled).toBe(false);
+    });
+
+    it('"précédent" revient en arrière', async () => {
+      await goNext();
+      await goNext();
+      expect(activePuceIndex()).toBe(2);
+
+      await click(previousBtn());
+      expect(activePuceIndex()).toBe(1);
+      expect(main().style.transform).toBe('translateX(-100%)');
+    });
+
+    it('désactive "suivant" sur la dernière slide', async () => {
+      for (let i = 0; i < 6; i++) await goNext();
+      expect(activePuceIndex()).toBe(6);
+      expect(main().style.transform).toBe('translateX(-600%)');
+      expect(nextBtn().disabled).toBe(true);
+      expect(previousBtn().disabled).toBe(false);
+    });
+
+    it('ignore les clics sur un bouton désactivé', async () => {
+      await click(previousBtn());
+      expect(activePuceIndex()).toBe(0);
+      expect(main().style.transform).toBe('translateX(0%)');
+    });
+  });
+
+  describe('navigation avec les puces', () => {
+    beforeEach(() => setup());
+
+    it('va directement à la slide choisie', async () => {
+      await click(puces()[4]);
+      expect(activePuceIndex()).toBe(4);
+      expect(main().style.transform).toBe('translateX(-400%)');
+    });
+
+    it('permet de revenir en arrière via une puce', async () => {
+      await click(puces()[5]);
+      await endTransition();
+      await click(puces()[1]);
+      expect(activePuceIndex()).toBe(1);
+      expect(main().style.transform).toBe('translateX(-100%)');
+    });
+
+    it('ne déclenche pas d\'animation en cliquant sur la puce déjà active', async () => {
+      await click(puces()[0]);
+      expect(nextBtn().disabled).toBe(false);
+      expect(main().style.transform).toBe('translateX(0%)');
+    });
+  });
+
+  describe('gestion de transitionend', () => {
+    beforeEach(() => setup());
+
+    it('ignore une transition d\'une autre propriété CSS', async () => {
+      await click(nextBtn());
+      await endTransition('opacity');
+      expect(nextBtn().disabled).toBe(true);
+    });
+
+    it('ignore un transitionend remonté depuis un enfant', async () => {
+      await click(nextBtn());
+      await endTransition('transform', slideEls()[0]);
+      const bubbling = new Event('transitionend', { bubbles: true });
+      Object.defineProperty(bubbling, 'propertyName', { value: 'transform' });
+      slideEls()[0].dispatchEvent(bubbling);
+      await render();
+      expect(nextBtn().disabled).toBe(true);
+    });
+
+    it('termine l\'animation sur transitioncancel', async () => {
+      await click(nextBtn());
+      const event = new Event('transitioncancel');
+      Object.defineProperty(event, 'propertyName', { value: 'transform' });
+      main().dispatchEvent(event);
+      await render();
+      expect(nextBtn().disabled).toBe(false);
+    });
+  });
+
+  describe('prefers-reduced-motion', () => {
+    it('n\'attend aucune transition : les boutons restent actifs après un clic', async () => {
+      await setup({ reducedMotion: true });
+      await click(nextBtn());
+      expect(activePuceIndex()).toBe(1);
+      expect(main().style.transform).toBe('translateX(-100%)');
+      expect(nextBtn().disabled).toBe(false);
+      expect(previousBtn().disabled).toBe(false);
+    });
+  });
+
+  describe('mode tablette', () => {
+    it('regroupe les puces par pages (ceil(7 / 3) = 3)', async () => {
+      await setup({ tablet: true });
+      expect(puces()).toHaveLength(3);
+    });
+
+    it('déplace par page (step de 99 % avec 3 slides par page)', async () => {
+      await setup({ tablet: true });
+      await click(nextBtn());
+      expect(activePuceIndex()).toBe(1);
+      expect(main().style.transform).toBe('translateX(-99%)');
+    });
+
+    it('désactive "suivant" sur la dernière page', async () => {
+      await setup({ tablet: true });
+      await goNext();
+      await goNext();
+      expect(activePuceIndex()).toBe(2);
+      expect(nextBtn().disabled).toBe(true);
+    });
+
+    it('ne décale pas le contenu quand il y a moins de slides que slideByPage', async () => {
+      await setup({ tablet: true, slides: 2 });
+      expect(el('.carousel-buttons-area')).toBeNull();
+      expect(main().style.transform).toBe('translateX(0%)');
+    });
+
+    it('utilise aussi le mode paginé quand le conteneur n\'est pas petit', async () => {
+      await setup();
+      host.small.set(false);
+      await render();
+      expect(puces()).toHaveLength(3);
+    });
+
+    it('respecte l\'input slideByPage', async () => {
+      await setup({ tablet: true });
+      host.slideByPage.set(2);
+      await render();
+      expect(puces()).toHaveLength(4);
+    });
+  });
+
+  describe('réactivité (resize / changements d\'état)', () => {
+    beforeEach(() => setup());
+
+    it('repasse en mode paginé et revient à 0 quand le breakpoint tablette est franchi', async () => {
+      await click(puces()[4]);
+      await endTransition();
+      expect(activePuceIndex()).toBe(4);
+
+      media.set(TABLET_QUERY, true);
+      await render();
+
+      expect(puces()).toHaveLength(3);
+      expect(activePuceIndex()).toBe(0);
+      expect(main().style.transform).toBe('translateX(0%)');
+    });
+
+    it('repasse en mode slide par slide quand on quitte la tablette', async () => {
+      media.set(TABLET_QUERY, true);
+      await render();
+      expect(puces()).toHaveLength(3);
+
+      media.set(TABLET_QUERY, false);
+      await render();
+      expect(puces()).toHaveLength(7);
+    });
+
+    it('revient à 0 quand le nombre de slides change', async () => {
+      await click(puces()[3]);
+      await endTransition();
+
+      host.slides.set([1, 2, 3, 4]);
+      await render();
+
+      expect(activePuceIndex()).toBe(0);
+      expect(puces()).toHaveLength(4);
+    });
+
+    it('réagit au changement de prefers-reduced-motion', async () => {
+      media.set(REDUCED_MOTION_QUERY, true);
+      await render();
+      await click(nextBtn());
+      expect(nextBtn().disabled).toBe(false);
+    });
+
+    it('retire ses écouteurs matchMedia à la destruction', () => {
+      expect(media.listenerCount(TABLET_QUERY)).toBe(1);
+      expect(media.listenerCount(REDUCED_MOTION_QUERY)).toBe(1);
+
+      fixture.destroy();
+
+      expect(media.listenerCount(TABLET_QUERY)).toBe(0);
+      expect(media.listenerCount(REDUCED_MOTION_QUERY)).toBe(0);
+    });
+  });
+
+  describe('tracking', () => {
+    beforeEach(() => setup());
+
+    const trackingDirectives = (): PppClickTrackingStub[] =>
+      fixture.debugElement
+        .queryAll(By.directive(PppClickTrackingStub))
+        .map((d) => d.injector.get(PppClickTrackingStub));
+
+    it('transmet type, nom et conteneur aux boutons précédent / suivant', () => {
+      const [previous, , , , , , , , next] = trackingDirectives();
+      expect(previous.trackingButtonType()).toBe('chevron');
+      expect(previous.trackingButtonName()).toBe('test nav - précédent');
+      expect(previous.trackingButtonContainer()).toBe('test_container');
+
+      expect(next.trackingButtonType()).toBe('chevron');
+      expect(next.trackingButtonName()).toBe('test nav - suivant');
+    });
+
+    it('transmet type et nom indexé à chaque puce', () => {
+      const bullets = trackingDirectives().slice(1, -1);
+      expect(bullets).toHaveLength(7);
+      bullets.forEach((directive, i) => {
+        expect(directive.trackingButtonType()).toBe('puce');
+        expect(directive.trackingButtonName()).toBe(`test nav - index: ${i}`);
+        expect(directive.trackingButtonContainer()).toBe('test_container');
+      });
+    });
+
+    it('met à jour les noms de tracking quand les inputs changent', async () => {
+      host.navName.set('autre nav');
+      host.container.set('autre_container');
+      await render();
+
+      const [previous] = trackingDirectives();
+      expect(previous.trackingButtonName()).toBe('autre nav - précédent');
+      expect(previous.trackingButtonContainer()).toBe('autre_container');
+    });
+  });
+});

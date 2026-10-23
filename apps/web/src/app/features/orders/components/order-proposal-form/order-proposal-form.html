@@ -1,0 +1,56 @@
+<section class="order-proposal" aria-labelledby="proposal-title">
+    <h2 id="proposal-title">Vérifier la commande</h2>
+
+    <p>
+        L'agent a préparé cette proposition. Vous pouvez modifier les informations
+        avant de confirmer la création de la commande.
+    </p>
+
+    <form novalidate (submit)="onFormSubmit($event)">
+        <div class="form-field">
+            <label for="customer">Client</label>
+
+            <input id="customer" type="text" autocomplete="name" [formField]="orderForm.customer" />
+
+            @if (orderForm.customer().touched() && orderForm.customer().invalid()) {
+            @for (error of orderForm.customer().errors(); track $index) {
+            <p class="field-error">{{ error.message }}</p>
+            }
+            }
+        </div>
+
+        <div class="form-field">
+            <label for="items">Articles (un par ligne)</label>
+
+            <textarea id="items" rows="4" [formField]="orderForm.itemsText"></textarea>
+
+            @if (orderForm.itemsText().touched() && orderForm.itemsText().invalid()) {
+            @for (error of orderForm.itemsText().errors(); track $index) {
+            <p class="field-error">{{ error.message }}</p>
+            }
+            }
+        </div>
+
+        <div class="form-field">
+            <label for="total">Montant total (€)</label>
+
+            <input id="total" type="number" step="0.01" [formField]="orderForm.total" />
+
+            @if (orderForm.total().touched() && orderForm.total().invalid()) {
+            @for (error of orderForm.total().errors(); track $index) {
+            <p class="field-error">{{ error.message }}</p>
+            }
+            }
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" [disabled]="!orderForm().valid() || submitting()">
+                {{ submitting() ? 'Confirmation en cours…' : 'Confirmer la commande' }}
+            </button>
+
+            <button type="button" class="secondary" [disabled]="submitting()" (click)="cancel()">
+                Annuler la proposition
+            </button>
+        </div>
+    </form>
+</section>

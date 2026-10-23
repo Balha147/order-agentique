@@ -1,0 +1,46 @@
+<section class="agent-timeline" aria-label="Progression de l'agent" aria-live="polite"
+    [attr.aria-busy]="orderService.agentRunning()">
+    <div class="timeline-heading">
+        <div class="timeline-heading-icon" aria-hidden="true">✦</div>
+
+        <div>
+            <h3>Assistant IA</h3>
+            <p>
+                @if (orderService.agentRunning()) {
+                {{ orderService.agentProgress() }}
+                } @else {
+                {{ orderService.agentProgress() }}
+                }
+            </p>
+        </div>
+
+        <span class="timeline-status" [class.timeline-status--running]="orderService.agentRunning()">
+            {{ orderService.agentRunning() ? 'En cours' : 'Terminé' }}
+        </span>
+    </div>
+
+    @if (orderService.agentTimeline().length > 0) {
+    <ol class="timeline-list">
+        @for (step of orderService.agentTimeline(); track $index) {
+        <li class="timeline-step" [class.timeline-step--active]="$last && orderService.agentRunning()"
+            [class.timeline-step--error]="step.startsWith('Erreur :')">
+            <span class="timeline-marker" aria-hidden="true">
+                @if (step.startsWith('Erreur :')) {
+                !
+                } @else if ($last && orderService.agentRunning()) {
+                <span class="timeline-spinner"></span>
+                } @else {
+                ✓
+                }
+            </span>
+
+            <span class="timeline-label">{{ step }}</span>
+        </li>
+        }
+    </ol>
+    } @else {
+    <p class="timeline-empty">
+        Les étapes de traitement apparaîtront ici.
+    </p>
+    }
+</section>
